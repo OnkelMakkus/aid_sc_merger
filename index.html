@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="de">
+<html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -77,81 +77,81 @@
 
 <div class="container">
   <h1>AI Dungeon Story Card Tool</h1>
-  <p class="subtitle">Lokaler Upload, Zusammenführen, Aufteilen & Download</p>
+  <p class="subtitle">Upload, merge, split, filter, and download Story Card decks locally in your browser</p>
 
   <div class="tabs">
-    <button class="tab-btn active" onclick="switchTab('merge')">1. Zusammenführen</button>
-    <button class="tab-btn" onclick="switchTab('split')">2. Aufteilen / Filtern</button>
+    <button class="tab-btn active" onclick="switchTab('merge')">1. Merge Decks</button>
+    <button class="tab-btn" onclick="switchTab('split')">2. Split / Filter</button>
   </div>
 
   <!-- TAB 1: MERGE -->
   <div id="tab-merge" class="tab-content active">
-    <label>Paket A (Datei oder Text):</label>
+    <label>Deck A (File or JSON text):</label>
     <div class="file-upload-box">
-      <label class="upload-label" for="file-m1">📂 JSON-Datei laden</label>
+      <label class="upload-label" for="file-m1">📂 Load JSON File</label>
       <input type="file" id="file-m1" accept=".json,application/json" onchange="handleFileUpload(event, 'merge-input-1', 'm1-name')">
-      <span id="m1-name" class="file-name">Keine Datei gewählt</span>
+      <span id="m1-name" class="file-name">No file chosen</span>
     </div>
-    <textarea id="merge-input-1" placeholder='[{"title": "Karte 1", ...}]'></textarea>
+    <textarea id="merge-input-1" placeholder='[{"title": "Card 1", ...}]'></textarea>
 
-    <label>Paket B (Datei oder Text):</label>
+    <label>Deck B (File or JSON text):</label>
     <div class="file-upload-box">
-      <label class="upload-label" for="file-m2">📂 JSON-Datei laden</label>
+      <label class="upload-label" for="file-m2">📂 Load JSON File</label>
       <input type="file" id="file-m2" accept=".json,application/json" onchange="handleFileUpload(event, 'merge-input-2', 'm2-name')">
-      <span id="m2-name" class="file-name">Keine Datei gewählt</span>
+      <span id="m2-name" class="file-name">No file chosen</span>
     </div>
-    <textarea id="merge-input-2" placeholder='[{"title": "Karte 2", ...}]'></textarea>
+    <textarea id="merge-input-2" placeholder='[{"title": "Card 2", ...}]'></textarea>
 
     <div style="margin-bottom: 12px;">
       <label style="display: inline-flex; align-items: center; gap: 6px; cursor: pointer;">
         <input type="checkbox" id="merge-dedupe" checked style="accent-color: var(--accent);">
-        Duplikate (gleicher Kartentitel) automatisch überspringen
+        Automatically skip duplicate cards (matching title)
       </label>
     </div>
 
     <div class="btn-row">
-      <button class="btn" onclick="executeMerge()">Kombinieren</button>
+      <button class="btn" onclick="executeMerge()">Merge Decks</button>
     </div>
 
     <div id="merge-status" class="status"></div>
-    <label>Ergebnis:</label>
-    <textarea id="merge-output" readonly placeholder="Hier erscheint das kombinierte JSON..."></textarea>
+    <label>Merged Result:</label>
+    <textarea id="merge-output" readonly placeholder="Merged JSON will appear here..."></textarea>
 
     <div class="btn-row">
-      <button class="btn btn-sec" onclick="copyResult('merge-output')">In Zwischenablage</button>
-      <button class="btn" onclick="downloadJSON('merge-output', 'merged-story-cards.json')">💾 Herunterladen (.json)</button>
+      <button class="btn btn-sec" onclick="copyResult('merge-output')">Copy to Clipboard</button>
+      <button class="btn" onclick="downloadJSON('merge-output', 'merged-story-cards.json')">💾 Download (.json)</button>
     </div>
   </div>
 
   <!-- TAB 2: SPLIT -->
   <div id="tab-split" class="tab-content">
-    <label>Basis-Paket (Datei oder Text):</label>
+    <label>Source Deck (File or JSON text):</label>
     <div class="file-upload-box">
-      <label class="upload-label" for="file-split">📂 JSON-Datei laden</label>
+      <label class="upload-label" for="file-split">📂 Load JSON File</label>
       <input type="file" id="file-split" accept=".json,application/json" onchange="handleSplitFileUpload(event)">
-      <span id="split-file-name" class="file-name">Keine Datei gewählt</span>
+      <span id="split-file-name" class="file-name">No file chosen</span>
     </div>
-    <textarea id="split-input" placeholder="Exportiertes JSON-Array hier einfügen..."></textarea>
+    <textarea id="split-input" placeholder="Paste exported JSON array here..."></textarea>
     
     <div class="btn-row">
-      <button class="btn" onclick="loadCardsForSplit()">Karten auflisten</button>
-      <button class="btn btn-sec" onclick="toggleAllSplitCards(true)">Alle</button>
-      <button class="btn btn-sec" onclick="toggleAllSplitCards(false)">Keine</button>
+      <button class="btn" onclick="loadCardsForSplit()">Parse Cards</button>
+      <button class="btn btn-sec" onclick="toggleAllSplitCards(true)">Select All</button>
+      <button class="btn btn-sec" onclick="toggleAllSplitCards(false)">Deselect All</button>
     </div>
 
     <div id="split-status" class="status"></div>
     <div id="split-card-list" class="card-list"></div>
 
     <div class="btn-row">
-      <button class="btn" onclick="exportSelectedSplitCards()">Ausgewählte Karten erzeugen</button>
+      <button class="btn" onclick="exportSelectedSplitCards()">Export Selected Cards</button>
     </div>
 
-    <label>Export-Ergebnis:</label>
-    <textarea id="split-output" readonly placeholder="Hier erscheint das Teilpaket..."></textarea>
+    <label>Filtered Result:</label>
+    <textarea id="split-output" readonly placeholder="Exported subset will appear here..."></textarea>
 
     <div class="btn-row">
-      <button class="btn btn-sec" onclick="copyResult('split-output')">In Zwischenablage</button>
-      <button class="btn" onclick="downloadJSON('split-output', 'split-story-cards.json')">💾 Herunterladen (.json)</button>
+      <button class="btn btn-sec" onclick="copyResult('split-output')">Copy to Clipboard</button>
+      <button class="btn" onclick="downloadJSON('split-output', 'split-story-cards.json')">💾 Download (.json)</button>
     </div>
   </div>
 </div>
@@ -223,9 +223,9 @@
       }
 
       outArea.value = JSON.stringify(merged, null, 2);
-      status.innerText = `Erfolg: ${merged.length} Karten zusammengeführt (${skippedCount} Duplikate übersprungen).`;
+      status.innerText = `Success: ${merged.length} cards merged (${skippedCount} duplicates skipped).`;
     } catch (err) {
-      status.innerText = `Fehler im JSON-Format: ${err.message}`;
+      status.innerText = `Invalid JSON format: ${err.message}`;
     }
   }
 
@@ -238,13 +238,13 @@
     try {
       splitCards = parseDeck(document.getElementById('split-input').value);
       if (splitCards.length === 0) {
-        status.innerText = 'Keine Karten gefunden.';
+        status.innerText = 'No cards found.';
         return;
       }
       splitCards.forEach((card, idx) => {
-        const title = card.title || `Unbenannte Karte #${idx + 1}`;
+        const title = card.title || `Untitled Card #${idx + 1}`;
         const type = card.type || 'Standard';
-        const keys = card.keys ? `Keys: ${card.keys.substring(0, 40)}...` : 'Keine Keys';
+        const keys = card.keys ? `Keys: ${card.keys.substring(0, 40)}...` : 'No keys';
 
         const item = document.createElement('label');
         item.className = 'card-item';
@@ -252,14 +252,14 @@
           <input type="checkbox" data-index="${idx}" checked>
           <div class="card-info">
             <div class="card-title">${escapeHTML(title)}</div>
-            <div class="card-meta">Typ: ${escapeHTML(type)} | ${escapeHTML(keys)}</div>
+            <div class="card-meta">Type: ${escapeHTML(type)} | ${escapeHTML(keys)}</div>
           </div>
         `;
         container.appendChild(item);
       });
-      status.innerText = `${splitCards.length} Karten geladen. Wähle die gewünschten Karten aus:`;
+      status.innerText = `${splitCards.length} cards loaded. Choose the cards you want to export:`;
     } catch (err) {
-      status.innerText = `Fehler beim Einlesen: ${err.message}`;
+      status.innerText = `Error parsing JSON: ${err.message}`;
     }
   }
 
@@ -278,19 +278,19 @@
     });
 
     document.getElementById('split-output').value = JSON.stringify(selected, null, 2);
-    document.getElementById('split-status').innerText = `${selected.length} von ${splitCards.length} Karten exportiert.`;
+    document.getElementById('split-status').innerText = `${selected.length} of ${splitCards.length} cards exported.`;
   }
 
   function copyResult(elementId) {
     const text = document.getElementById(elementId).value;
     if (!text) return;
-    navigator.clipboard.writeText(text).then(() => alert('In Zwischenablage kopiert!'));
+    navigator.clipboard.writeText(text).then(() => alert('Copied to clipboard!'));
   }
 
   function downloadJSON(elementId, filename) {
     const text = document.getElementById(elementId).value;
     if (!text) {
-      alert('Kein Inhalt zum Herunterladen vorhanden.');
+      alert('No content available to download.');
       return;
     }
     const blob = new Blob([text], { type: 'application/json' });
