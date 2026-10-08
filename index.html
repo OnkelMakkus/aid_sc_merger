@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AI Dungeon Story Card Manager</title>
+  <style>
+    :root {
+      --bg: #121418;
+      --card-bg: #1c2026;
+      --border: #2e3642;
+      --accent: #d97706;
+      --accent-hover: #b45309;
+      --text: #e2e8f0;
+      --text-muted: #94a3b8;
+      --input-bg: #0d1013;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+    body { background-color: var(--bg); color: var(--text); padding: 16px; line-height: 1.5; }
+    .container { max-width: 800px; margin: 0 auto; }
+    h1 { font-size: 1.5rem; text-align: center; margin-bottom: 6px; color: var(--accent); }
+    p.subtitle { text-align: center; color: var(--text-muted); font-size: 0.85rem; margin-bottom: 20px; }
+    
+    .tabs { display: flex; gap: 8px; margin-bottom: 16px; }
+    .tab-btn { flex: 1; padding: 10px; background: var(--card-bg); border: 1px solid var(--border); color: var(--text); font-weight: bold; border-radius: 8px; cursor: pointer; }
+    .tab-btn.active { background: var(--accent); border-color: var(--accent); color: #fff; }
+    
+    .tab-content { display: none; background: var(--card-bg); border: 1px solid var(--border); border-radius: 12px; padding: 16px; }
+    .tab-content.active { display: block; }
+
+    .file-upload-box {
+      border: 1px dashed var(--border);
+      border-radius: 8px;
+      padding: 10px;
+      margin-bottom: 8px;
+      background: rgba(255, 255, 255, 0.02);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+    .file-upload-box input[type="file"] { display: none; }
+    .upload-label {
+      background: #2e3642;
+      color: var(--text);
+      padding: 6px 12px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 0.8rem;
+      font-weight: 600;
+    }
+    .upload-label:hover { background: #3b4654; }
+    .file-name { font-size: 0.8rem; color: var(--text-muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 220px; }
+
+    label { display: block; font-weight: 600; font-size: 0.85rem; margin-bottom: 4px; color: var(--text-muted); }
+    textarea { width: 100%; height: 95px; background: var(--input-bg); border: 1px solid var(--border); border-radius: 8px; color: var(--text); padding: 8px; font-family: monospace; font-size: 0.8rem; resize: vertical; margin-bottom: 12px; }
+    textarea:focus { outline: none; border-color: var(--accent); }
+    
+    .btn-row { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 8px; margin-bottom: 12px; }
+    button.btn { background: var(--accent); color: #fff; border: none; padding: 10px 14px; border-radius: 8px; font-weight: bold; cursor: pointer; flex: 1; min-width: 140px; }
+    button.btn:hover { background: var(--accent-hover); }
+    button.btn-sec { background: #2e3642; }
+    button.btn-sec:hover { background: #3b4654; }
+
+    .card-list { display: flex; flex-direction: column; gap: 8px; max-height: 350px; overflow-y: auto; margin-bottom: 12px; padding-right: 4px; }
+    .card-item { background: #13171d; border: 1px solid var(--border); border-radius: 8px; padding: 10px; display: flex; align-items: flex-start; gap: 10px; cursor: pointer; }
+    .card-item input[type="checkbox"] { margin-top: 4px; width: 18px; height: 18px; accent-color: var(--accent); }
+    .card-info { flex: 1; }
+    .card-title { font-weight: bold; color: var(--text); font-size: 0.95rem; }
+    .card-meta { font-size: 0.75rem; color: var(--text-muted); margin-top: 2px; }
+
+    .status { font-size: 0.85rem; color: var(--accent); margin-bottom: 8px; font-weight: bold; }
+  </style>
+</head>
+<body>
+
+<div class="container">
+  <h1>AI Dungeon Story Card Tool</h1>
+  <p class="subtitle">Lokaler Upload, Zusammenführen, Aufteilen & Download</p>
+
+  <div class="tabs">
+    <button class="tab-btn active" onclick="switchTab('merge')">1. Zusammenführen</button>
+    <button class="tab-btn" onclick="switchTab('split')">2. Aufteilen / Filtern</button>
+  </div>
+
+  <!-- TAB 1: MERGE -->
+  <div id="tab-merge" class="tab-content active">
+    <label>Paket A (Datei oder Text):</label>
+    <div class="file-upload-box">
+      <label class="upload-label" for="file-m1">📂 JSON-Datei laden</label>
+      <input type="file" id="file-m1" accept=".json,application/json" onchange="handleFileUpload(event, 'merge-input-1', 'm1-name')">
+      <span id="m1-name" class="file-name">Keine Datei gewählt</span>
+    </div>
+    <textarea id="merge-input-1" placeholder='[{"title": "Karte 1", ...}]'></textarea>
+
+    <label>Paket B (Datei oder Text):</label>
+    <div class="file-upload-box">
+      <label class="upload-label" for="file-m2">📂 JSON-Datei laden</label>
+      <input type="file" id="file-m2" accept=".json,application/json" onchange="handleFileUpload(event, 'merge-input-2', 'm2-name')">
+      <span id="m2-name" class="file-name">Keine Datei gewählt</span>
+    </div>
+    <textarea id="merge-input-2" placeholder='[{"title": "Karte 2", ...}]'></textarea>
+
+    <div style="margin-bottom: 12px;">
+      <label style="display: inline-flex; align-items: center; gap: 6px; cursor: pointer;">
+        <input type="checkbox" id="merge-dedupe" checked style="accent-color: var(--accent);">
+        Duplikate (gleicher Kartentitel) automatisch überspringen
+      </label>
+    </div>
+
+    <div class="btn-row">
+      <button class="btn" onclick="executeMerge()">Kombinieren</button>
+    </div>
+
+    <div id="merge-status" class="status"></div>
+    <label>Ergebnis:</label>
+    <textarea id="merge-output" readonly placeholder="Hier erscheint das kombinierte JSON..."></textarea>
+
+    <div class="btn-row">
+      <button class="btn btn-sec" onclick="copyResult('merge-output')">In Zwischenablage</button>
+      <button class="btn" onclick="downloadJSON('merge-output', 'merged-story-cards.json')">💾 Herunterladen (.json)</button>
+    </div>
+  </div>
+
+  <!-- TAB 2: SPLIT -->
+  <div id="tab-split" class="tab-content">
+    <label>Basis-Paket (Datei oder Text):</label>
+    <div class="file-upload-box">
+      <label class="upload-label" for="file-split">📂 JSON-Datei laden</label>
+      <input type="file" id="file-split" accept=".json,application/json" onchange="handleSplitFileUpload(event)">
+      <span id="split-file-name" class="file-name">Keine Datei gewählt</span>
+    </div>
+    <textarea id="split-input" placeholder="Exportiertes JSON-Array hier einfügen..."></textarea>
+    
+    <div class="btn-row">
+      <button class="btn" onclick="loadCardsForSplit()">Karten auflisten</button>
+      <button class="btn btn-sec" onclick="toggleAllSplitCards(true)">Alle</button>
+      <button class="btn btn-sec" onclick="toggleAllSplitCards(false)">Keine</button>
+    </div>
+
+    <div id="split-status" class="status"></div>
+    <div id="split-card-list" class="card-list"></div>
+
+    <div class="btn-row">
+      <button class="btn" onclick="exportSelectedSplitCards()">Ausgewählte Karten erzeugen</button>
+    </div>
+
+    <label>Export-Ergebnis:</label>
+    <textarea id="split-output" readonly placeholder="Hier erscheint das Teilpaket..."></textarea>
+
+    <div class="btn-row">
+      <button class="btn btn-sec" onclick="copyResult('split-output')">In Zwischenablage</button>
+      <button class="btn" onclick="downloadJSON('split-output', 'split-story-cards.json')">💾 Herunterladen (.json)</button>
+    </div>
+  </div>
+</div>
+
+<script>
+  function switchTab(tab) {
+    document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+    document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+    if (tab === 'merge') {
+      document.querySelector('.tab-btn:nth-child(1)').classList.add('active');
+      document.getElementById('tab-merge').classList.add('active');
+    } else {
+      document.querySelector('.tab-btn:nth-child(2)').classList.add('active');
+      document.getElementById('tab-split').classList.add('active');
+    }
+  }
+
+  function handleFileUpload(event, targetTextareaId, nameSpanId) {
+    const file = event.target.files[0];
+    if (!file) return;
+    document.getElementById(nameSpanId).innerText = file.name;
+
+    const reader = new FileReader();
+    reader.onload = function(e) {
+      document.getElementById(targetTextareaId).value = e.target.result;
+    };
+    reader.readAsText(file);
+  }
+
+  function handleSplitFileUpload(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+    document.getElementById('split-file-name').innerText = file.name;
+
+    const reader = new FileReader();
+    reader.onload = function(e) {
+      document.getElementById('split-input').value = e.target.result;
+      loadCardsForSplit();
+    };
+    reader.readAsText(file);
+  }
+
+  function parseDeck(raw) {
+    if (!raw.trim()) return [];
+    const parsed = JSON.parse(raw.trim());
+    return Array.isArray(parsed) ? parsed : [parsed];
+  }
+
+  function executeMerge() {
+    const status = document.getElementById('merge-status');
+    const outArea = document.getElementById('merge-output');
+    try {
+      const deckA = parseDeck(document.getElementById('merge-input-1').value);
+      const deckB = parseDeck(document.getElementById('merge-input-2').value);
+      const dedupe = document.getElementById('merge-dedupe').checked;
+
+      const merged = [...deckA];
+      const seenTitles = new Set(deckA.map(c => (c.title || '').trim().toLowerCase()));
+
+      let skippedCount = 0;
+      for (const card of deckB) {
+        const titleKey = (card.title || '').trim().toLowerCase();
+        if (dedupe && titleKey && seenTitles.has(titleKey)) {
+          skippedCount++;
+          continue;
+        }
+        merged.push(card);
+        if (titleKey) seenTitles.add(titleKey);
+      }
+
+      outArea.value = JSON.stringify(merged, null, 2);
+      status.innerText = `Erfolg: ${merged.length} Karten zusammengeführt (${skippedCount} Duplikate übersprungen).`;
+    } catch (err) {
+      status.innerText = `Fehler im JSON-Format: ${err.message}`;
+    }
+  }
+
+  let splitCards = [];
+
+  function loadCardsForSplit() {
+    const status = document.getElementById('split-status');
+    const container = document.getElementById('split-card-list');
+    container.innerHTML = '';
+    try {
+      splitCards = parseDeck(document.getElementById('split-input').value);
+      if (splitCards.length === 0) {
+        status.innerText = 'Keine Karten gefunden.';
+        return;
+      }
+      splitCards.forEach((card, idx) => {
+        const title = card.title || `Unbenannte Karte #${idx + 1}`;
+        const type = card.type || 'Standard';
+        const keys = card.keys ? `Keys: ${card.keys.substring(0, 40)}...` : 'Keine Keys';
+
+        const item = document.createElement('label');
+        item.className = 'card-item';
+        item.innerHTML = `
+          <input type="checkbox" data-index="${idx}" checked>
+          <div class="card-info">
+            <div class="card-title">${escapeHTML(title)}</div>
+            <div class="card-meta">Typ: ${escapeHTML(type)} | ${escapeHTML(keys)}</div>
+          </div>
+        `;
+        container.appendChild(item);
+      });
+      status.innerText = `${splitCards.length} Karten geladen. Wähle die gewünschten Karten aus:`;
+    } catch (err) {
+      status.innerText = `Fehler beim Einlesen: ${err.message}`;
+    }
+  }
+
+  function toggleAllSplitCards(checkState) {
+    document.querySelectorAll('#split-card-list input[type="checkbox"]').forEach(cb => cb.checked = checkState);
+  }
+
+  function exportSelectedSplitCards() {
+    const checkboxes = document.querySelectorAll('#split-card-list input[type="checkbox"]');
+    const selected = [];
+    checkboxes.forEach(cb => {
+      if (cb.checked) {
+        const idx = parseInt(cb.getAttribute('data-index'), 10);
+        selected.push(splitCards[idx]);
+      }
+    });
+
+    document.getElementById('split-output').value = JSON.stringify(selected, null, 2);
+    document.getElementById('split-status').innerText = `${selected.length} von ${splitCards.length} Karten exportiert.`;
+  }
+
+  function copyResult(elementId) {
+    const text = document.getElementById(elementId).value;
+    if (!text) return;
+    navigator.clipboard.writeText(text).then(() => alert('In Zwischenablage kopiert!'));
+  }
+
+  function downloadJSON(elementId, filename) {
+    const text = document.getElementById(elementId).value;
+    if (!text) {
+      alert('Kein Inhalt zum Herunterladen vorhanden.');
+      return;
+    }
+    const blob = new Blob([text], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  }
+
+  function escapeHTML(str) {
+    return str.replace(/[&<>'"]/g, tag => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' }[tag] || tag));
+  }
+</script>
+
+</body>
+</html>
